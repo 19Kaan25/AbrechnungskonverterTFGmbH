@@ -1,0 +1,13 @@
+;VHV;;Provisions -;Abrechnung;;;;;;
+;;;;;;;;;;
+;Abr. Verm.-Nr.;999999-000;;;;;;;;Muster GmbH
+;;;;;;;;;;
+VZW;Vers.Schein-Nr.;B-A;Prov.Betrag;P-A;Prov %;PLZ;Name 1;Name 2;Ort;Strasse
+ 1 ;006-100001; 1 ;      12,04;201;25,000;10115;Mustermann;Max;Berlin;Musterweg 1
+ 1 ;006-100002; 1 ;      12,80;201;20,000;10115;Grüßmann;Nina;Berlin;Musterweg 1
+ 1 ;006-100002; 6 ;-         12,80;201;20,000;10115;Grüßmann;Nina;Berlin;Musterweg 1
+ 1 ;700-000001; 1 ;      58,02;201;10,000;20095;Muster GmbH;;Hamburg;Firmenstr. 2
+ 1 ;800-000002; 1 ;      50,00;201;3,000;50667;LowRate;Tim;Koeln;Tiefstr. 3
+ 1 ;900-000003; 1 ;      99,00;201;60,000;24103;HighRate;Eva;Kiel;Hochweg 4
+ 5 ; ***   20   *** ; ;   3.333,76; ; ; ; ; ;Kraftfahrt;
+   ;                ; ;   6.816,77; ; ; ; ; ; ;

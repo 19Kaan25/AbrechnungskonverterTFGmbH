@@ -1,0 +1,6 @@
+POS;Vertrag;Versicherungsnehmer;von;bis;Prozentsatz;Courtage;Währung;Gesamt-Courtage
+1;80010001;"Müller GmbH, Musterstraße 1, 12345 Berlin";01.07.2026;01.07.2027;25,00;10,50;EUR;999,99
+2;80010001;"Müller GmbH, Musterstraße 1, 12345 Berlin";01.07.2026;01.08.2026;25,00;-2,00;EUR;-200,00
+3;80010002;"Beispiel, Anna, Beispielweg 2, 54321 Hamburg";01.07.2026;01.07.2027;10,00;1.234,56;EUR;7777,77
+4;80010003;"Grenzwert Vier";01.07.2026;01.07.2027;4,00;40,00;EUR;40,00
+5;80010004;"Grenzwert Einundfünfzig";01.07.2026;01.07.2027;51,00;51,00;EUR;51,00
