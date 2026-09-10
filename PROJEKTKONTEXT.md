@@ -1,8 +1,8 @@
 # Projektkontext: Abrechnungs-Konverter
 
 Stand: 23. August 2026  
-Repository: `19Kaan25/Abrechnungskonverter`  
-Branch: `master`
+Repository: `19Kaan25/AbrechnungskonverterTFGmbH`  
+Branch: `main`
 
 ## 1. Zweck der Anwendung
 
