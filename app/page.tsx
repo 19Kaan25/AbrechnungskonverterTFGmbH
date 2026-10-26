@@ -43,7 +43,9 @@ export default function Home() {
 
     const company = mode === "csv" ? csvCompany : excelCompany;
     const customName = mode === "csv" ? csvName : excelName;
-    const convertMode: Mode = mode === "csv" ? "csv" : excelFormat;
+    // HVS gibt es nur als .xls
+    const convertMode: Mode =
+      mode === "csv" ? "csv" : excelCompany === "HVS" ? "xls" : excelFormat;
 
     setStatus("loading");
     setStatusMsg(
@@ -187,18 +189,26 @@ export default function Home() {
             ))}
           </select>
 
-          <label>Dateiformat</label>
-          <select
-            className="select-style"
-            value={excelFormat}
-            onChange={(e) => setExcelFormat(e.target.value as "xls" | "xlsx")}
-          >
-            {EXCEL_FORMATS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
+          {excelCompany === "HVS" ? (
+            <p className="hint">
+              HVS-Datei (.xls) bitte vorher in Excel öffnen und ohne Passwort speichern.
+            </p>
+          ) : (
+            <>
+              <label>Dateiformat</label>
+              <select
+                className="select-style"
+                value={excelFormat}
+                onChange={(e) => setExcelFormat(e.target.value as "xls" | "xlsx")}
+              >
+                {EXCEL_FORMATS.map((f) => (
+                  <option key={f.value} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
 
           <label>
             Dateiname der neuen Datei <span>(optional)</span>

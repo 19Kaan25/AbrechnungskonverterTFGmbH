@@ -21,6 +21,7 @@ import { rows as hvsRows, normalizeHvsText } from "./csv/hvs";
 import { rows as allianzRows } from "./csv/allianz";
 import { rows as xlsInterriskRows } from "./excel/xls-interrisk";
 import { rows as xlsxAdcuriRows } from "./excel/xlsx-adcuri";
+import { rows as xlsHvsRows } from "./excel/xls-hvs";
 
 type Mapper = (records: Record[]) => Row[];
 
@@ -70,12 +71,12 @@ export const EXCEL_FORMATS: { value: "xls" | "xlsx"; label: string }[] = [
   { value: "xlsx", label: ".xlsx (neueres Format)" },
 ];
 
-// Die im Frontend auswählbaren Excel-Firmen (Wert -> Anzeigename). Der Wert steuert
-// aktuell nur den Dateinamen der Ausgabe (das Mapping hängt weiterhin am Dateiformat
-// oben) - die Liste ist bewusst so vorbereitet, dass später weitere Firmen ergänzt
-// werden können.
+// Die im Frontend auswählbaren Excel-Firmen (Wert -> Anzeigename). Bei InterRisk steuert
+// der Wert nur den Dateinamen (Mapping hängt am Dateiformat oben). HVS hat ein eigenes
+// Mapping und ist immer .xls.
 export const EXCEL_COMPANIES: { value: string; label: string }[] = [
   { value: "InterRisk", label: "InterRisk" },
+  { value: "HVS", label: "HVS" },
 ];
 
 export interface ConvertOptions {
@@ -119,6 +120,12 @@ export async function convert(opts: ConvertOptions): Promise<ConvertResult> {
     const records = parseCsv(normalizedText, company);
     mapped = mapper(records);
     warnings = validateInputContent(records, CSV_VALIDATION_PROFILES[company]);
+  } else if (company === "HVS") {
+    // HVS-Excel: Kopfzeile steht erst unter dem Briefkopf
+    const buffer = await readAsArrayBuffer(file);
+    const records = parseExcel(buffer, "Vertragsnr.");
+    mapped = xlsHvsRows(records);
+    warnings = validateInputContent(records, "HVS (.xls)");
   } else {
     // Excel (.xls oder .xlsx)
     const buffer = await readAsArrayBuffer(file);

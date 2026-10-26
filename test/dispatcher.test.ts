@@ -24,8 +24,8 @@ describe("Dispatcher", () => {
     ]);
   });
 
-  it("bietet aktuell nur InterRisk im Excel-Dropdown an", () => {
+  it("bietet InterRisk und HVS im Excel-Dropdown an", () => {
     const values = EXCEL_COMPANIES.map((c) => c.value);
-    expect(values).toEqual(["InterRisk"]);
+    expect(values).toEqual(["InterRisk", "HVS"]);
   });
 });

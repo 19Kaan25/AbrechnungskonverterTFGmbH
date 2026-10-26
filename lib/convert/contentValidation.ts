@@ -11,7 +11,8 @@ export type ContentValidationProfileId =
   | "HVS"
   | "Allianz"
   | "Excel (.xls)"
-  | "Excel (.xlsx)";
+  | "Excel (.xlsx)"
+  | "HVS (.xls)";
 
 interface FieldRef {
   names: string[];
@@ -131,6 +132,20 @@ const PROFILES: Record<ContentValidationProfileId, ValidationProfile> = {
       scale: "direct",
       filter: { minExclusive: 3, maxExclusive: 51 },
     },
+  },
+  "HVS (.xls)": {
+    insurer: "HVS (.xls)",
+    vs: exact("Vertragsnr."),
+    names: [exact("VN-Name")],
+    provision: exact("Abr.Betrag"),
+    rate: {
+      field: exact("Pr%"),
+      scale: "direct",
+      filter: { minExclusive: 4, maxExclusive: 51 },
+    },
+    // SUMME-Zeile am Ende ist keine Vertragszeile
+    relevant: (record, resolved) =>
+      stringValue(record, resolved.names[0]).toUpperCase() !== "SUMME",
   },
   "Excel (.xls)": {
     insurer: "Excel (.xls)",

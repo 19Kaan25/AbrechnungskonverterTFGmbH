@@ -48,6 +48,12 @@ label span {
   margin-left: 4px;
 }
 
+.hint {
+  font-size: 13px;
+  color: #888;
+  margin: -4px 0 16px;
+}
+
 input[type="text"] {
   width: 100%;
   border: 1.5px solid #e0e3eb;

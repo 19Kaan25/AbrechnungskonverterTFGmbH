@@ -22,7 +22,7 @@ Die App hat einen früheren Ablauf aus lokaler HTML-Datei und n8n-Workflow abgel
 
 - **Datenschutz:** Die gesamte Verarbeitung läuft im Browser. Abrechnungen verlassen
   den Rechner nicht, es gibt kein Backend, keine Datenbank und keine API-Schlüssel.
-- **9 Versicherer, 3 Dateiformate:** CSV, semikolongetrennte TXT, XLS und XLSX,
+- **9 Versicherer, 4 Dateiformate:** CSV, semikolongetrennte TXT, XLS und XLSX,
   inklusive Latin1-Dateien und gemischter Zeilenumbrüche.
 - **Prüfung bei jeder Konvertierung:** Fehlende Spalten, unlesbare Beträge oder
   beschädigte Zeichen werden erkannt, bevor eine fehlerhafte Datei heruntergeladen wird.
@@ -45,7 +45,7 @@ Die App hat einen früheren Ablauf aus lokaler HTML-Datei und n8n-Workflow abgel
 **CSV / TXT:** R+V / Condor, ARAG, Adcuri, Zürich, Nürnberger, VHV, Auxilla, HVS (`.txt`),
 Allianz
 
-**Excel:** `.xls` (InterRisk) und `.xlsx` (Adcuri)
+**Excel:** `.xls` (InterRisk, HVS) und `.xlsx` (Adcuri)
 
 Einige Versicherer brauchen eine Sonderbehandlung:
 
@@ -60,6 +60,11 @@ Einige Versicherer brauchen eine Sonderbehandlung:
   `4 < Prozentsatz < 51`. Als Provision zählt `Courtage`, nicht `Gesamt-Courtage`.
   Anschriften, die an den VN-Namen angehängt sind (`Name, Straße, PLZ Ort`), werden
   entfernt.
+- **HVS (`.xls`):** Die Kopfzeile steht erst unter einem dreizeiligen Briefkopf und wird
+  automatisch gesucht, die `SUMME`-Zeile am Ende wird ignoriert. `Vertragsnr.` wird ohne
+  führende Nullen übernommen, als Provision zählt `Abr.Betrag`. Es gelten dieselben Regeln
+  wie bei der TXT (`4 < Pr% < 51`, KA immer `1`). Die Originaldatei ist
+  passwortgeschützt und muss vorher in Excel ohne Passwort gespeichert werden.
 - **Allianz:** alphanumerische VS-Nummer aus `VERTRAGS_OM`, VN-Name als
   „Nachname, Vorname“, das Vorzeichen von `PROVISIONSBETRAG` wird umgedreht. Übernommen
   werden nur Zeilen mit `3 < PROVISIONSSATZ < 51`.

@@ -36,6 +36,20 @@ export function xlsxFixtureFile(
   return new File([new Uint8Array(buf)], name);
 }
 
+// Wie xlsxFixtureFile, aber Zeile für Zeile als Array. So gehen auch Briefkopf-Zeilen über
+// der Kopfzeile oder doppelte Spaltennamen (HVS). Standard ist ein echtes .xls (BIFF8).
+export function excelAoaFile(
+  rows: Array<Array<string | number>>,
+  name = "fixture.xls",
+  bookType: "biff8" | "xlsx" = "biff8",
+): File {
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Tabelle1");
+  const buf = XLSX.write(wb, { bookType, type: "array" }) as ArrayBuffer;
+  return new File([new Uint8Array(buf)], name);
+}
+
 // Entfernt das BOM und gibt die reinen Zeilen zurück (praktisch für Assertions).
 export function csvLines(csv: string): string[] {
   return csv.replace(/^﻿/, "").split("\n");
