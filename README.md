@@ -1,102 +1,136 @@
 # Abrechnungs-Konverter
 
-![CI](https://github.com/19Kaan25/Abrechnungskonverter/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/19Kaan25/AbrechnungskonverterTFGmbH/actions/workflows/ci.yml/badge.svg)
 
-Web-App, die Provisions-/Courtageabrechnungen verschiedener Versicherer in das
-einheitliche CSV-Format fürs Bestandsverwaltungssystem umbaut
-(`VS-Nummer;VN-Name;Provision;KA`, `;`-getrennt, UTF-8 mit BOM).
+**Live-Demo:** https://abrechnungskonverter.vercel.app/
 
-Ersetzt die frühere Kombination aus lokaler HTML-Datei + lokal gehostetem n8n-Workflow.
-Die gesamte Umwandlung läuft **im Browser** – es werden keine Daten an einen Server
-gesendet, es gibt keinen API-Key und keine Backend-Abhängigkeit.
+Web-App, die Provisions- und Courtageabrechnungen verschiedener Versicherer in ein
+einheitliches CSV-Format für ein Bestandsverwaltungssystem umwandelt.
+
+Jede Versicherung liefert ihre Abrechnung anders: andere Spaltennamen, andere
+Zeichenkodierung, Prozentsätze mal als `30` und mal als `0,30`, Stornos als negative
+Beträge, Kopf- und Summenzeilen. Der Konverter liest diese Dateien ein, vereinheitlicht
+sie und fasst gleiche Verträge zusammen. Heraus kommt immer dieselbe Struktur:
+
+```text
+VS-Nummer;VN-Name;Provision;KA
+```
+
+Die App hat einen früheren Ablauf aus lokaler HTML-Datei und n8n-Workflow abgelöst.
+
+## Highlights
+
+- **Datenschutz:** Die gesamte Verarbeitung läuft im Browser. Abrechnungen verlassen
+  den Rechner nicht, es gibt kein Backend, keine Datenbank und keine API-Schlüssel.
+- **9 Versicherer, 3 Dateiformate:** CSV, semikolongetrennte TXT, XLS und XLSX,
+  inklusive Latin1-Dateien und gemischter Zeilenumbrüche.
+- **Prüfung bei jeder Konvertierung:** Fehlende Spalten, unlesbare Beträge oder
+  beschädigte Zeichen werden erkannt, bevor eine fehlerhafte Datei heruntergeladen wird.
+- **Automatisch getestet:** End-to-End-Tests je Versicherer mit anonymisierten
+  Beispieldateien, ausgeführt bei jedem Push über GitHub Actions.
+
+## Tech-Stack
+
+| Bereich | Technik |
+| --- | --- |
+| Framework | Next.js 14 (App Router), React 18 |
+| Sprache | TypeScript (Strict Mode) |
+| Parsing | Papa Parse (CSV), SheetJS (Excel) |
+| Tests | Vitest |
+| CI | GitHub Actions (Node 22) |
+| Hosting | Vercel (statische Seite, keine Serverfunktionen) |
 
 ## Unterstützte Formate
 
-- **CSV/TXT umbauen:** R+V / Condor, ARAG, Adcuri, Zürich, Nürnberger, VHV, Auxilla,
-  HVS (`.txt`), Allianz
-- **Excel zu CSV:** `.xls` (InterRisk-Mapping) und `.xlsx` (Adcuri-Mapping)
+**CSV / TXT:** R+V / Condor, ARAG, Adcuri, Zürich, Nürnberger, VHV, Auxilla, HVS (`.txt`),
+Allianz
 
-VHV ist ein Sonderfall: Die Datei hat einen mehrzeiligen Kopf und Summenzeilen, Stornos
-sind als negative Beträge kodiert (werden abgezogen), und nur Zeilen mit Provisionssatz
-zwischen 4 % und 51 % werden übernommen. VS-Nummern, die dadurch wegfallen, werden unter
-der Tabelle als „Nicht aufgelistete VS-Nummer/n" aufgeführt.
+**Excel:** `.xls` (InterRisk) und `.xlsx` (Adcuri)
 
-Auxilla: Datei ist Latin1-kodiert, nur Zeilen mit Provisionssatz zwischen 4 % und 51 %
-werden übernommen (ohne Fußzeile für ausgeschlossene Verträge), KA ist immer `1`.
+Einige Versicherer brauchen eine Sonderbehandlung:
 
-HVS: Die semikolongetrennte `.txt`-Datei ist Latin1-kodiert. Gemischte CR-/CRLF-
-Zeilenumbrüche werden vor dem Parsen normalisiert. Nur Zeilen mit `4 < Prozentsatz < 51`
-werden übernommen; als Provision wird exakt `Courtage` verwendet (nicht
-`Gesamt-Courtage`), KA ist immer `1`. An den Versicherungsnehmer angehängte Anschriften
-im Format `Name, Straße, PLZ Ort` werden aus dem VN-Namen entfernt.
+- **VHV:** mehrzeiliger Dateikopf und Summenzeilen. Stornos stehen als negative Beträge
+  drin und werden abgezogen. Übernommen werden nur Zeilen mit einem Provisionssatz
+  zwischen 4 % und 51 %. VS-Nummern, die dadurch wegfallen, stehen unter der Tabelle als
+  „Nicht aufgelistete VS-Nummer/n“.
+- **Auxilla:** Latin1-kodiert. Übernommen werden nur Zeilen mit einem Provisionssatz
+  zwischen 4 % und 51 %, KA ist immer `1`.
+- **HVS:** semikolongetrennte `.txt` in Latin1 mit gemischten CR-/CRLF-Zeilenumbrüchen,
+  die vor dem Parsen vereinheitlicht werden. Übernommen werden nur Zeilen mit
+  `4 < Prozentsatz < 51`. Als Provision zählt `Courtage`, nicht `Gesamt-Courtage`.
+  Anschriften, die an den VN-Namen angehängt sind (`Name, Straße, PLZ Ort`), werden
+  entfernt.
+- **Allianz:** alphanumerische VS-Nummer aus `VERTRAGS_OM`, VN-Name als
+  „Nachname, Vorname“, das Vorzeichen von `PROVISIONSBETRAG` wird umgedreht. Übernommen
+  werden nur Zeilen mit `3 < PROVISIONSSATZ < 51`.
 
-Allianz: `VERTRAGS_OM` wird als alphanumerische VS-Nummer unverändert übernommen,
-`VN_NAME` als „Nachname, Vorname“ formatiert und das Vorzeichen von
-`PROVISIONSBETRAG` umgedreht. Nur Zeilen mit `3 < PROVISIONSSATZ < 51` werden
-übernommen; KA ist immer `1`.
+PDF-Abrechnungen werden bewusst nicht unterstützt. Dafür wäre ein Server oder ein
+externer KI-Dienst nötig, und die Daten müssten den Browser verlassen.
 
-> Der frühere PDF→CSV-Zweig (über Gemini/KI) ist bewusst **nicht** enthalten, um die
-> App ohne Server und ohne API-Key betreiben zu können. InterRisk-/Alte-Leipziger-PDFs
-> müssen weiterhin anderweitig verarbeitet werden.
+## Wenn ein Versicherer sein Format ändert
 
-## Wenn ein Versicherer sein Dateiformat ändert
+Jedes Mapping prüft vorab, ob alle erwarteten Spalten da sind
+(`lib/convert/validate.ts`). Wurde eine Spalte umbenannt, zeigt die App eine klare
+Fehlermeldung an. Ohne diese Prüfung käme still „0 Verträge“ heraus oder, schlimmer,
+Verträge mit Provision `0`.
 
-Jedes Mapping prüft vorab (`lib/convert/validate.ts`, `requireColumns`), ob die
-erwarteten Spalten in der Datei vorhanden sind. Fehlt eine Kernspalte (z.B. weil eine
-Spalte umbenannt wurde), erscheint eine klare Fehlermeldung in der App – anstatt
-still `„Fertig: 0 Verträge"` oder, schlimmer, Verträge mit falscher Provision (`0`)
-auszugeben. Wenn diese Meldung auftaucht, hat sich vermutlich das Dateiformat der
-Versicherung geändert; dann Mapping und Fixture in `test/fixtures/` aktualisieren.
+Zusätzlich prüft `lib/convert/contentValidation.ts` bei jeder Konvertierung den Inhalt:
+CSV-Struktur, leere Dateien, lesbare Provisionen und Provisionssätze, plausible
+Prozentskalen, beschädigte Zeichen und die erzeugte Ausgabe. Dabei wird nichts
+gespeichert.
 
-Zusätzlich läuft bei **jeder Konvertierung** eine Inhaltsprüfung
-(`lib/convert/contentValidation.ts`) ohne historische Speicherung. Sie prüft unter
-anderem CSV-Struktur, leere Dateien, lesbare Provisionen/Provisionssätze, erwartete
-Prozentsatz-Skalen, beschädigte Zeichen sowie die erzeugte Ausgabe. Kritische finanzielle
-Fehler verhindern den Download. Fehlende VN-Namen, einzelne fehlende VS-Nummern,
-ausgefilterte Satz-Zeilen oder ausschließlich `0,00`-Provisionen erscheinen als Warnung;
-der Download bleibt möglich, sofern gültige Verträge vorhanden sind.
+- **Kritische Fehler** (z. B. nicht lesbare Beträge) verhindern den Download.
+- **Warnungen** (z. B. fehlende VN-Namen, einzelne fehlende VS-Nummern, herausgefilterte
+  Zeilen) werden angezeigt, der Download bleibt aber möglich.
 
 ## Lokal starten
 
 ```bash
 npm install
 npm run dev
-# http://localhost:3000
 ```
 
-## Auf Vercel deployen
-
-1. Repository zu GitHub pushen.
-2. Auf [vercel.com](https://vercel.com) „New Project" → das Repo importieren.
-3. Vercel erkennt Next.js automatisch. Keine Umgebungsvariablen, kein Build-Config nötig.
-4. „Deploy" – fertig.
-
-Alternativ per CLI: `npm i -g vercel && vercel`.
+Die App läuft dann unter http://localhost:3000.
 
 ## Tests
 
 ```bash
-npm test          # einmalig (wie in der CI)
+npm test            # einmal durchlaufen lassen (wie in der CI)
 npm run test:watch  # während der Entwicklung
 ```
 
-Für jeden Versicherer gibt es einen End-to-End-Test (`test/insurers-*.test.ts`), der eine
-kleine, **anonymisierte** Fixture-Datei (`test/fixtures/`, erfundene Namen/Nummern, aber
-echte Spaltenstruktur/Encoding) durch `convert()` schickt und das exakte Ergebnis prüft –
-inkl. KA-Kennung, Zahlformat, Umlaute (Latin1) und Aggregation. Dazu Unit-Tests für
-`aggregate` und `buildCsv`. Die Tests laufen automatisch bei jedem Push über GitHub
-Actions (`.github/workflows/ci.yml`).
+Für jeden Versicherer gibt es einen End-to-End-Test (`test/insurers-*.test.ts`). Er
+schickt eine kleine Beispieldatei aus `test/fixtures/` durch `convert()` und vergleicht
+das Ergebnis exakt, inklusive KA-Kennung, Zahlenformat, Umlauten und Zusammenfassung.
+Die Beispieldateien haben die echte Spaltenstruktur und Kodierung, enthalten aber nur
+erfundene Namen und Nummern.
 
-Neuen Versicherer testen: Fixture unter `test/fixtures/<name>.csv` anlegen und einen
-Block in der passenden `test/insurers-*.test.ts` ergänzen.
+Dazu kommen Unit-Tests für Aggregation, CSV-Ausgabe, Spaltenprüfung, Dispatcher und
+geänderte Eingangsformate.
 
-## Aufbau
+## Deployment
 
-- `app/page.tsx` – Oberfläche (Tabs, Datei-Upload, Download)
-- `lib/convert/` – Konvertierungslogik
-  - `index.ts` – Dispatcher `convert()` (wählt Mapping nach Firma/Format)
-  - `csv/*.ts` – firmenspezifische CSV-Mappings
-  - `excel/*.ts` – Excel-Mappings (.xls / .xlsx)
-  - `aggregate.ts` – fasst gleiche Verträge zusammen und summiert Provisionen
-  - `buildCsv.ts` – finaler CSV-Text + Dateiname
-- `test/` – Vitest-Tests und anonymisierte Fixtures
+Die App läuft unter https://abrechnungskonverter.vercel.app/. Sie ist eine statische
+Next.js-Seite und braucht auf Vercel keine Umgebungsvariablen: Repository importieren,
+Vercel erkennt Next.js automatisch.
+
+## Projektstruktur
+
+```text
+app/
+  page.tsx                Oberfläche: Tabs, Upload, Status, Download
+lib/convert/
+  index.ts                convert(): wählt das Mapping nach Firma bzw. Format
+  readFile.ts             liest Dateien als UTF-8, Latin1 oder binär
+  parseCsv.ts             Semikolon-CSV-Parser
+  parseExcel.ts           liest das erste Tabellenblatt einer Excel-Datei
+  validate.ts             Prüfung der erwarteten Spalten
+  contentValidation.ts    Inhaltsprüfung bei jeder Konvertierung
+  aggregate.ts            fasst gleiche Verträge zusammen und summiert
+  buildCsv.ts             Ausgabe-CSV (UTF-8 mit BOM) und Dateiname
+  csv/*.ts                Mappings je Versicherer
+  excel/*.ts              Excel-Mappings
+test/
+  fixtures/               anonymisierte Beispieldateien
+  *.test.ts               Vitest-Tests
+```
