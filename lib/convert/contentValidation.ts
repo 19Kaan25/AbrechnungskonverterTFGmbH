@@ -207,7 +207,12 @@ export function parseFlexibleNumber(value: unknown): number | undefined {
       normalized = normalized.replace(/,/g, "");
     }
   } else if (lastComma !== -1) {
-    normalized = normalized.replace(",", ".");
+    // Mehrere Kommas ohne Punkt sind US-Tausendertrenner ("1,234,567").
+    normalized =
+      normalized.indexOf(",") !== lastComma ? normalized.replace(/,/g, "") : normalized.replace(",", ".");
+  } else if (lastDot !== -1 && normalized.indexOf(".") !== lastDot) {
+    // Mehrere Punkte ohne Komma sind deutsche Tausendertrenner ("1.234.567").
+    normalized = normalized.replace(/\./g, "");
   }
 
   const parsed = Number(normalized);

@@ -3,7 +3,7 @@ import { safe, findKey } from "../buildCsv";
 import { requireColumns } from "../validate";
 
 // ARAG: dynamische Spaltensuche (VS-NR, VN-NAME, BP-ANSPR-BTR, BP-PRV SATZ).
-// Provisionsbetrag hat Punkt als Dezimaltrennzeichen -> in Komma umwandeln.
+// Provisionsbetrag hat Punkt als Dezimaltrennzeichen (US-Format); aggregate() parst ihn.
 // KA = 1, wenn Provisionssatz >= 4.
 export function rows(records: Record[]): Row[] {
   if (records.length > 0) {
@@ -21,7 +21,7 @@ export function rows(records: Record[]): Row[] {
 
     const vs = safe(e[vsKey]);
     const vn = safe(e[vnKey]);
-    const prov = String(e[provKey] ?? "0").trim().replace(/\./g, ",");
+    const prov = String(e[provKey] ?? "0").trim();
 
     const provSatz = parseFloat(String(e[satzKey] ?? "0").trim());
     const ka = provSatz >= 4 ? "1" : "0";

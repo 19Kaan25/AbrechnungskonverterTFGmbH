@@ -41,7 +41,7 @@ export function rows(records: Record[]): Row[] {
     if (nachname !== "" && vorname !== "") vn = `${nachname}, ${vorname}`;
     else vn = nachname || vorname;
 
-    const prov = String(e[provBetrKey] ?? "0").trim().replace(/\./g, ",");
+    const prov = String(e[provBetrKey] ?? "0").trim();
 
     const provSatz = parseFloat(String(e[provSatzKey] ?? "0").trim().replace(",", "."));
     const ka = provSatz > 4 ? "1" : "0";

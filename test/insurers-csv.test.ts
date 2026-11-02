@@ -134,3 +134,37 @@ describe("Allianz", () => {
     expect(res.filename).toMatch(/^abrechnung_allianz_\d{4}-\d{2}-\d{2}\.csv$/);
   });
 });
+
+describe("Beträge ab 1.000 (Tausendertrenner)", () => {
+  it("R+V: deutsches Format 2.550,00 bleibt 2550,00", async () => {
+    const file = csvFile(
+      "vsnr;vn_name;prov_betr;prov_satz_eff\n" +
+        "100000001;Muster GmbH;2.550,00;11,00\n" +
+        "100000002;Storno AG;-1.200,00;11,00\n",
+    );
+    const res = await convert({ file, mode: "csv", company: "R+V" });
+    expect(dataRows(res.csv)).toEqual([
+      "100000001;Muster GmbH;2550,00;1",
+      "100000002;Storno AG;-1200,00;1",
+    ]);
+  });
+
+  it("ARAG: US-Format 2,550.00 wird zu 2550,00", async () => {
+    const file = csvFile(
+      "ABRECHN.-MON;VS-NR;VN-NAME;BP-ANSPR-BTR;BP-PRV SATZ\n" +
+        "202605;11000000000001;Muster GmbH;2,550.00;25.00\n" +
+        "202605;11000000000001;Muster GmbH;10.71;25.00\n",
+    );
+    const res = await convert({ file, mode: "csv", company: "ARAG" });
+    expect(dataRows(res.csv)).toEqual(["11000000000001;Muster GmbH;2560,71;1"]);
+  });
+
+  it("Adcuri: US-Format 1,234.50 wird zu 1234,50", async () => {
+    const file = csvFile(
+      "Versicherungsnehmer;Vertragsnummer;Provisionssatz;Provisionsbetrag\n" +
+        "Muster, Max;100000001;0.3;1,234.50\n",
+    );
+    const res = await convert({ file, mode: "csv", company: "Adcuri" });
+    expect(dataRows(res.csv)).toEqual(["100000001;Muster, Max;1234,50;1"]);
+  });
+});

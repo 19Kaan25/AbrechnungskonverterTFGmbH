@@ -26,7 +26,7 @@ export function rows(records: Record[]): Row[] {
 
     const vs = String(e[vsKey]).trim().replace(/^0+/, "").replace(/;/g, ",");
     const vn = safe(e[nameKey]);
-    const prov = String(e[provBetrKey] ?? "0").trim().replace(/\./g, ",");
+    const prov = String(e[provBetrKey] ?? "0").trim();
 
     const provSatz = parseFloat(String(e[provSatzKey] ?? "0").trim().replace(",", ".")) * 100;
     const ka = provSatz > 4 ? "1" : "0";
